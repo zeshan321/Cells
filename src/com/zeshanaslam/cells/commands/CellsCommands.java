@@ -28,6 +28,8 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.type.WallSign;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 import org.bukkit.material.MaterialData;
 
@@ -164,6 +166,10 @@ public class CellsCommands {
     )
     public void home(@Sender Player sender, @Default("-1") int cellId) {
         List<Cell> cells = cellHelpers.getPlayerCells(sender);
+        if (cells.isEmpty()) {
+            sender.sendMessage(ChatColor.RED + "You do not own a cell!");
+            return;
+        }
 
         if (cells.size() > 1 && cellId == -1) {
             sender.sendMessage(main.configStore.messages.get(ConfigStore.Messages.HomeMoreCells));
@@ -415,7 +421,7 @@ public class CellsCommands {
             desc = "Evicts cell",
             perms = "cells.command.evict"
     )
-    public void evict(@Sender Player sender, int cellId) {
+    public void evict(CommandSender sender, int cellId) {
         Cell cell = cellHelpers.getCell(cellId);
         if (cell == null) {
             sender.sendMessage(main.configStore.messages.get(ConfigStore.Messages.CellNotFound));
@@ -423,5 +429,25 @@ public class CellsCommands {
         }
 
         main.rentHandler.startAuctionHouse(cell);
+    }
+
+    @Command(
+            aliases = "evictall",
+            desc = "Evicts cell",
+            perms = "cells.command.evictall"
+    )
+    public void evictall(CommandSender sender, String playerName) {
+        Player player = Bukkit.getPlayer(playerName);
+        if (player == null) {
+            sender.sendMessage(ChatColor.RED + "Player not found!");
+            return;
+        }
+
+        List<Cell> cells = cellHelpers.getPlayerCells(player);
+        for (Cell cell: cells) {
+            main.rentHandler.startAuctionHouse(cell);
+        }
+
+        sender.sendMessage("Evicted " + player.getName() + " from " + cells.size() + " cells!");
     }
 }

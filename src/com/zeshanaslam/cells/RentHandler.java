@@ -88,6 +88,8 @@ public class RentHandler {
 
         main.auctionHouseHandler.auctionCell(cell, items);
 
+        region.getMembers().removePlayer(cell.tenant);
+
         // End rent
         cell.tenant = null;
         cellHelpers.createOrUpdateCell(cell);

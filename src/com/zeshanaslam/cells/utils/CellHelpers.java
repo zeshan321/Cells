@@ -22,9 +22,7 @@ import com.zeshanaslam.cells.config.ConfigStore;
 import com.zeshanaslam.cells.config.configdata.cells.Cell;
 import com.zeshanaslam.cells.config.configdata.cells.CellDataHelpers;
 import com.zeshanaslam.cells.config.configdata.groups.Group;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachmentInfo;
@@ -248,12 +246,21 @@ public class CellHelpers {
                 return false;
             }
 
+            World world = Bukkit.getWorld(cell.world);
+            RegionManager regionManager = new WorldUtils(main).getRegionManager(world);
+            ProtectedRegion region = regionManager.getRegion("cellsplugin" + cell.id);
+            if (region == null) {
+                player.sendMessage(ChatColor.RED + "Cells error! Report to staff. Region no longer exists for cell. Manual deletion?");
+                return false;
+            }
+
             main.economy.withdrawPlayer(offlinePlayer, cell.price);
 
             cell.tenant = player.getUniqueId();
             cell.rentTimestamp = System.currentTimeMillis();
             createOrUpdateCell(cell);
 
+            region.getMembers().addPlayer(cell.tenant);
             player.sendMessage(main.configStore.messages.get(ConfigStore.Messages.RentedCell));
             return true;
         }
